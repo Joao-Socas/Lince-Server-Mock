@@ -54,10 +54,10 @@
     <ClCompile Include="Engine\Source\EncodeNVENC.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="include\NvEncoder\NvEncoder.cpp">
+    <ClCompile Include="include\NvEncoder\NvEncoderCuda.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="include\NvEncoder\NvEncoderCuda.cpp">
+    <ClCompile Include="include\NvEncoder\NvEncoder.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
   </ItemGroup>

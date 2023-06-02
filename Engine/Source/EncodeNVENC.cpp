@@ -1,7 +1,7 @@
 #include "EncodeNVENC.hpp"
 
-EncodeNVENC::EncodeNVENC(unsigned int cuda_device_id, unsigned int gl_render_buffer, unsigned int width, unsigned int height) : 
-    cuda_device_id(cuda_device_id), gl_render_buffer(gl_render_buffer), width(width), height(height)
+EncodeNVENC::EncodeNVENC(unsigned int cuda_device_id, unsigned int gl_pixel_buffer, unsigned int width, unsigned int height, const char* output_file_path) :
+    cuda_device_id(cuda_device_id), gl_pixel_buffer(gl_pixel_buffer), width(width), height(height)
 {
     if (cuInit(0) < 0)
     {
@@ -35,29 +35,39 @@ EncodeNVENC::EncodeNVENC(unsigned int cuda_device_id, unsigned int gl_render_buf
     }
 
 
-    NV_ENC_BUFFER_FORMAT buffer_format = NV_ENC_BUFFER_FORMAT_ARGB10;
-    cuda_encoder = new NvEncoderCuda (cuda_context, width, height, buffer_format, 0);
+    NV_ENC_BUFFER_FORMAT buffer_format = NV_ENC_BUFFER_FORMAT_ARGB;
+    cuda_encoder = new NvEncoderCuda (cuda_context, width, height, buffer_format);
     NV_ENC_INITIALIZE_PARAMS initialize_params = { NV_ENC_INITIALIZE_PARAMS_VER };
     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-
     initialize_params.encodeConfig = &encodeConfig;
-    cuda_encoder->CreateDefaultEncoderParams(&initialize_params, NV_ENC_CODEC_HEVC_GUID, NV_ENC_PRESET_DEFAULT_GUID);
-    initialize_params.encodeWidth = 800;
-    initialize_params.encodeHeight = 600;
+    cuda_encoder->CreateDefaultEncoderParams(&initialize_params, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P3_GUID, NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY);
+    initialize_params.bufferFormat = NV_ENC_BUFFER_FORMAT_ARGB;
+    //initialize_params.outputStatsLevel = NV_ENC_OUTPUT_STATS_BLOCK_LEVEL;
+    initialize_params.encodeConfig->gopLength = 2;
+    //initialize_params.encodeConfig->profileGUID = NV_ENC_CODEC_PROFILE_AUTOSELECT_GUID;
+    //initialize_params.enableEncodeAsync = 0;
+     //initialize_params.frameRateNum = 30;
+    //initialize_params.frameRateDen = 1;
+    //initialize_params.enableReconFrameOutput = 1;
+    //auto& config = encodeConfig.encodeCodecConfig.h264Config;
+    //config.repeatSPSPPS = 1;
+    //config.entropyCodingMode = NV_ENC_H264_ENTROPY_CODING_MODE_CAVLC;
+    //config.maxNumRefFrames = 50;
 
-    encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
-    encodeConfig.frameIntervalP = 1; // IPP frame compress reference mode
-    encodeConfig.encodeCodecConfig.hevcConfig.idrPeriod = NVENC_INFINITE_GOPLENGTH;
-    encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
-    encodeConfig.rcParams.averageBitRate = (static_cast<unsigned int>(5.0f * initialize_params.encodeWidth * initialize_params.encodeHeight) / (1280 * 720)) * 10000;
-    encodeConfig.rcParams.vbvBufferSize = (encodeConfig.rcParams.averageBitRate * initialize_params.frameRateDen / initialize_params.frameRateNum) * 5;
-    encodeConfig.rcParams.maxBitRate = encodeConfig.rcParams.averageBitRate;
-    encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
+    //encodeConfig.rcParams.lowDelayKeyFrameScale = UINT32_MAX / 10;
+    //encodeConfig.rcParams.vbvBufferSize = UINT32_MAX/10;
+    //encodeConfig.rcParams.vbvInitialDelay = 0;
+    //encodeConfig.rcParams.maxBitRate = UINT32_MAX / 10;
+    //encodeConfig.rcParams.averageBitRate = UINT32_MAX / 10;
 
     cuda_encoder->CreateEncoder(&initialize_params);
-    cudaGraphicsGLRegisterImage(&cuda_render_buffer, gl_render_buffer, cudaGraphicsMapFlagsNone, GL_RENDERBUFFER);
+    cudaError_t result = cudaGraphicsGLRegisterBuffer(&cuda_render_buffer, gl_pixel_buffer, cudaGraphicsMapFlagsNone);
+    if (result != cudaError::cudaSuccess)
+    {
+        std::cout << "Falha ao linkar o buffer OpenGl com o buffer cuda";
+    }
 
-
+    output_file.open(output_file_path, std::ios::out, std::ios::binary);
 }
 
 //void EncodeNVENC::SetUpFrameBuffer()
@@ -72,21 +82,59 @@ EncodeNVENC::EncodeNVENC(unsigned int cuda_device_id, unsigned int gl_render_buf
 //    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_resource->texture, 0);
 //}
 
-void EncodeNVENC::Encode(std::vector<std::vector<uint8_t>> drawing_buffer)
+void EncodeNVENC::Encode()
 {
+    Sleep(1000);
+    char* pixel_test = new char[width * height * 4];
     char* mapped_cuda_render_buffer;
     size_t num_bytes;
-    cudaGraphicsMapResources(1, &cuda_render_buffer);
-    cudaGraphicsResourceGetMappedPointer((void**)&mapped_cuda_render_buffer, &num_bytes, cuda_render_buffer);
+    cudaError_t result = cudaGraphicsMapResources(1, &cuda_render_buffer);
+    if (result != cudaError::cudaSuccess)
+    {
+        std::cout << "Falha ao mapear o resource do cuda";
+    }
+    result = cudaGraphicsResourceGetMappedPointer((void**)&mapped_cuda_render_buffer, &num_bytes, cuda_render_buffer);
+    if (result != cudaError::cudaSuccess)
+    {
+        std::cout << "Falha ao conseguir o ponteiro mapeado";
+    }
 
 
     const NvEncInputFrame* input_frame = cuda_encoder->GetNextInputFrame(); // this is where the raw image should be drawn or copied so it can be encoded
-    cuMemcpy((CUdeviceptr)input_frame->inputPtr, (CUdeviceptr)mapped_cuda_render_buffer, num_bytes);
+
+
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixel_test);
+    NvEncoderCuda::CopyToDeviceFrame(cuda_context, pixel_test, 0, (CUdeviceptr)input_frame->inputPtr,
+        (int)input_frame->pitch,
+        cuda_encoder->GetEncodeWidth(),
+        cuda_encoder->GetEncodeHeight(),
+        CU_MEMORYTYPE_HOST,
+        input_frame->bufferFormat,
+        input_frame->chromaOffsets,
+        input_frame->numChromaPlanes);
+ 
+    //CUresult cu_result = cuMemcpy((CUdeviceptr)input_frame->inputPtr, (CUdeviceptr)mapped_cuda_render_buffer, num_bytes);
+
+    //if (cu_result != cudaError::cudaSuccess)
+    //{
+    //    std::cout << "Falha ao copiar do buffer cuda para o buffer gl";
+    //}
+
     cuda_encoder->EncodeFrame(drawing_buffer); // Outputs inside drawing_buffer the ecoded frame that was suplied on input_frame
+
+    for (std::vector<uint8_t>& packet : drawing_buffer)
+    {
+        output_file.write(reinterpret_cast<char*>(packet.data()), packet.size());
+    }
+    cudaGraphicsUnmapResources(1, &cuda_render_buffer);
+    delete[] pixel_test;
+    Sleep(1000);
 }
 
-void EncodeNVENC::CleanupEncoder(std::vector<std::vector<uint8_t>> drawing_buffer)
+void EncodeNVENC::CleanupEncoder()
 {
     cuda_encoder->EndEncode(drawing_buffer);
+    output_file.close();
+    cuda_encoder->DestroyEncoder();
     delete cuda_encoder;
 }

@@ -41,6 +41,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void GLAPIENTRY
+MessageCallback(GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam)
+{
+    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+        type, severity, message);
+}
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     if (firstMouse)
@@ -147,43 +161,47 @@ int main()
     ShaderProgram framebuffer_shader_program(VertexShader("Engine/Shaders/VS_01.glsl"), FragmentShader("Engine/Shaders/FS_01.glsl"));
     Model model("Application/Models/backpack.obj");
     Model model2("Application/Models/Cube.obj");
-
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
+    
     unsigned int frame_buffer;
     glGenFramebuffers(1, &frame_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 
+
+    unsigned int render_buffer_depth;
+    glGenRenderbuffers(1, &render_buffer_depth);
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_depth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, render_buffer_depth);
+
     unsigned int render_buffer;
     glGenRenderbuffers(1, &render_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB10_A2, SCR_WIDTH, SCR_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, frame_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, SCR_WIDTH, SCR_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buffer);
 
+    unsigned int pixel_buffer;
+    glGenBuffers(1, &pixel_buffer);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
+    glBufferData(GL_PIXEL_PACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 4, NULL, GL_STREAM_COPY);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    BufferController buffer_controller(SCR_WIDTH, SCR_HEIGHT);
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0)
-    {
-        std::cout << "ERROR: Falha ao inciar o controlador de sockets do windows! (" << iResult << ")" << std::endl;
-        return 0;
-    }
-    ServerSocketIPV4 server_socket(PORT);
-    server_socket.Connect();
-    TransactionManager transaction_manager(&server_socket, &buffer_controller);
 
-    EncodeNVENC encoder(0, render_buffer, SCR_WIDTH, SCR_HEIGHT);
+    const char* output_file_path = "encoded.h264";
+    EncodeNVENC encoder(0, pixel_buffer, SCR_WIDTH, SCR_HEIGHT, output_file_path);
 
-    while (!glfwWindowShouldClose(window) && server_socket.b_connected)
+    while (!glfwWindowShouldClose(window))
     {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame_buffer);
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         processInput(window);
-
-        glEnable(GL_DEPTH_TEST);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.f, 0.f, 0.f, 1.f); //(BGRA)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -198,9 +216,6 @@ int main()
         framebuffer_shader_program.setUniform("view_position", cameraPos);
         framebuffer_shader_program.setUniform("directional_light_direction", directional_light_direction);
         framebuffer_shader_program.setUniform("directional_light_color", directional_light_color);
-
-        // Seta o buffer gerado pelo cuda para o framebuffer
-       // encoder.SetUpFrameBuffer();
 
         // render the loaded model
         glm::mat4 model_transform = glm::mat4(1.0f);
@@ -220,14 +235,28 @@ int main()
         framebuffer_shader_program.setUniform("model", model_transform);
         model2.Draw(framebuffer_shader_program);
 
-        encoder.Encode(buffer_controller.drawing_buffer);
-        while (buffer_controller.new_on_wait) {};
-        buffer_controller.SwapDrawingBuffer();
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
+        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+       
+        auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        glClientWaitSync(fence, 0, GL_TIMEOUT_IGNORED);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+
+        encoder.Encode();
+;
+        //glBindBuffer(GL_READ_BUFFER, pixel_buffer);
+        //glBindBuffer(GL_DRAW_BUFFER, render_buffer);
+        //glCopyBufferSubData(pixel_buffer, GL_COLOR_ATTACHMENT0, 0, 0, 800 * 600 * 4);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    encoder.CleanupEncoder(buffer_controller.drawing_buffer);
+    encoder.CleanupEncoder();
     glfwTerminate();
     return 0;
 } 
