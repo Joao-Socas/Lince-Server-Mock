@@ -1,0 +1,5 @@
+# File created by ZBrush
+# ToolType: Mesh3D
+# www.zbrush.com
+newmtl defaultMat
+map_Kd TwistedCube.bmp
