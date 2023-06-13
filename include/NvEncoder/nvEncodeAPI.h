@@ -2821,7 +2821,8 @@ NVENCSTATUS NVENCAPI NvEncGetEncodeGUIDs                        (void* encoder, 
  * The function returns the number of profile GUIDs supported for a given codec.
  * The client must first enumerate the codec GUIDs supported by the NvEncodeAPI
  * interface. After determining the codec GUID, it can query the NvEncodeAPI
- * interface to determine the number of profile GUIDs supported for a particular
+ * interface to determine the number of 
+ GUIDs supported for a particular
  * codec GUID.
  *
  * \param [in] encoder

@@ -60,6 +60,12 @@
     <ClCompile Include="include\NvEncoder\NvEncoder.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Source\AppEncCuda.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Header\Input.hpp">
@@ -107,8 +113,16 @@
     <ClInclude Include="include\NvEncoder\NvEncoderCuda.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Application\application.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="include\NvEncoder\crc.cu" />
+    <CudaCompile Include="include\NvEncoder\ColorSpace.cu" />
+    <CudaCompile Include="include\NvEncoder\BitDepth.cu" />
   </ItemGroup>
 </Project>

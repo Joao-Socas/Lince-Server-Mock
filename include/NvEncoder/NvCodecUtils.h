@@ -39,22 +39,20 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
-#include "Logger.h"
 #include <ios>
 #include <sstream>
+#include <fstream>
 #include <thread>
 #include <list>
 #include <vector>
 #include <condition_variable>
 
-extern simplelogger::Logger *logger;
 
 #ifdef __cuda_cuda_h__
 inline bool check(CUresult e, int iLine, const char *szFile) {
     if (e != CUDA_SUCCESS) {
         const char *szErrName = NULL;
         cuGetErrorName(e, &szErrName);
-        LOG(FATAL) << "CUDA driver API error " << szErrName << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -64,7 +62,6 @@ inline bool check(CUresult e, int iLine, const char *szFile) {
 #ifdef __CUDA_RUNTIME_H__
 inline bool check(cudaError_t e, int iLine, const char *szFile) {
     if (e != cudaSuccess) {
-        LOG(FATAL) << "CUDA runtime API error " << cudaGetErrorName(e) << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -102,7 +99,7 @@ inline bool check(NVENCSTATUS e, int iLine, const char *szFile) {
         "NV_ENC_ERR_RESOURCE_NOT_MAPPED",
     };
     if (e != NV_ENC_SUCCESS) {
-        LOG(FATAL) << "NVENC error " << aszErrName[e] << " at line " << iLine << " in file " << szFile;
+
         return false;
     }
     return true;
@@ -114,7 +111,7 @@ inline bool check(HRESULT e, int iLine, const char *szFile) {
     if (e != S_OK) {
         std::stringstream stream;
         stream << std::hex << std::uppercase << e;
-        LOG(FATAL) << "HRESULT error 0x" << stream.str() << " at line " << iLine << " in file " << szFile;
+
         return false;
     }
     return true;
@@ -124,7 +121,7 @@ inline bool check(HRESULT e, int iLine, const char *szFile) {
 #if defined(__gl_h_) || defined(__GL_H__)
 inline bool check(GLenum e, int iLine, const char *szFile) {
     if (e != 0) {
-        LOG(ERROR) << "GLenum error " << e << " at line " << iLine << " in file " << szFile;
+
         return false;
     }
     return true;
@@ -133,7 +130,7 @@ inline bool check(GLenum e, int iLine, const char *szFile) {
 
 inline bool check(int e, int iLine, const char *szFile) {
     if (e < 0) {
-        LOG(ERROR) << "General error " << e << " at line " << iLine << " in file " << szFile;
+
         return false;
     }
     return true;
@@ -211,12 +208,12 @@ public:
             try {
                 pBuf = new uint8_t[(size_t)nSize];
                 if (nSize != st.st_size) {
-                    LOG(WARNING) << "File is too large - only " << std::setprecision(4) << 100.0 * nSize / st.st_size << "% is loaded"; 
+
                 }
                 break;
             } catch(std::bad_alloc) {
                 if (!bPartial) {
-                    LOG(ERROR) << "Failed to allocate memory in BufferedReader";
+
                     return;
                 }
                 nSize = (uint32_t)(nSize * 0.9);
@@ -226,7 +223,7 @@ public:
         std::ifstream fpIn(szFileName, std::ifstream::in | std::ifstream::binary);
         if (!fpIn)
         {
-            LOG(ERROR) << "Unable to open input file: " << szFileName;
+
             return;
         }
 

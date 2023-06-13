@@ -58,6 +58,8 @@ public:
         uint32_t nExtraOutputDelay = 3, bool bMotionEstimationOnly = false, bool bOPInVideoMemory = false, bool bUseIVFContainer = true);
     virtual ~NvEncoderCuda();
 
+    NV_ENCODE_API_FUNCTION_LIST& m_nvenc_ref = m_nvenc;
+
     /**
     *  @brief This is a static function to copy input data from host memory to device memory.
     *  This function assumes YUV plane is a single contiguous memory segment.
@@ -98,6 +100,15 @@ public:
     *  @brief This function sets input and output CUDA streams
     */
     void SetIOCudaStreams(NV_ENC_CUSTREAM_PTR inputStream, NV_ENC_CUSTREAM_PTR outputStream);
+
+    unsigned int GetEncodeGUIDCount();
+    void GetEncodeList(GUID* GUID_list, unsigned int array_size, unsigned int* GUID_count);
+
+    unsigned int GetEncodePresetCount(GUID encode_GUID);
+    void GetEncodePresetList(GUID encoder_GUID, GUID* preset_GUID_list, unsigned int array_size, unsigned int* GUID_count);
+
+    unsigned int GetInputFormatCount(GUID encoder_GUID);
+    void GetInputFormats(GUID encoder_GUID, NV_ENC_BUFFER_FORMAT* input_format_list, unsigned int array_size, unsigned int* format_count);
 
 protected:
     /**

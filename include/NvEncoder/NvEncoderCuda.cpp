@@ -42,6 +42,44 @@ NvEncoderCuda::NvEncoderCuda(CUcontext cuContext, uint32_t nWidth, uint32_t nHei
     {
         NVENC_THROW_ERROR("Invalid Cuda Context", NV_ENC_ERR_INVALID_DEVICE);
     }
+    unsigned int n_guids;
+
+}
+
+unsigned int NvEncoderCuda::GetEncodeGUIDCount()
+{
+    unsigned int encode_GUID_count;
+    NVENC_API_CALL(m_nvenc.nvEncGetEncodeGUIDCount(m_hEncoder, &encode_GUID_count));
+    return encode_GUID_count;
+}
+
+void NvEncoderCuda::GetEncodeList(GUID* GUID_list, unsigned int array_size, unsigned int* encode_GUID_count)
+{
+    NVENC_API_CALL(m_nvenc.nvEncGetEncodeGUIDs(m_hEncoder, GUID_list, array_size, encode_GUID_count));
+}
+
+unsigned int NvEncoderCuda::GetEncodePresetCount(GUID encode_GUID)
+{
+    unsigned int encode_preset_GUID_count;
+    NVENC_API_CALL(m_nvenc.nvEncGetEncodePresetCount(m_hEncoder, encode_GUID, &encode_preset_GUID_count));
+    return encode_preset_GUID_count;
+}
+
+void NvEncoderCuda::GetEncodePresetList(GUID encoder_GUID, GUID* preset_GUID_list, unsigned int array_size, unsigned int* encode_preset_GUID_count)
+{
+    NVENC_API_CALL(m_nvenc.nvEncGetEncodePresetGUIDs(m_hEncoder, encoder_GUID, preset_GUID_list, array_size, encode_preset_GUID_count));
+}
+
+unsigned int NvEncoderCuda::GetInputFormatCount(GUID encoder_GUID)
+{
+    unsigned int input_format_count;
+    NVENC_API_CALL(m_nvenc.nvEncGetInputFormatCount(m_hEncoder, encoder_GUID, &input_format_count));
+    return input_format_count;
+}
+
+void NvEncoderCuda::GetInputFormats(GUID encoder_GUID, NV_ENC_BUFFER_FORMAT* input_format_list, unsigned int array_size, unsigned int* input_format_count)
+{
+    NVENC_API_CALL(m_nvenc.nvEncGetInputFormats(m_hEncoder, encoder_GUID, input_format_list, array_size, input_format_count));
 }
 
 NvEncoderCuda::~NvEncoderCuda()

@@ -75,7 +75,7 @@ public:
         const char *szLevels[] = {"TRACE", "INFO", "WARN", "ERROR", "FATAL"};
         if (bPrintTimeStamp) {
             time_t t = time(NULL);
-            struct tm* ptm;
+            struct tm* ptm = nullptr;
             localtime_s(ptm, &t);
             sprintf_s(szLead, "[%-5s][%02d:%02d:%02d] ", 
                 szLevels[l], ptm->tm_hour, ptm->tm_min, ptm->tm_sec);

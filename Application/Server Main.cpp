@@ -32,8 +32,8 @@ float lastFrame = 0.0f; // Time of last frame
 float lastX = 400, lastY = 300;
 float yaw = -90.0f, pitch = 0.0f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 5.0f, 5.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 3.0f, -1.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 5.0f, 10.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -114,14 +114,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     stbi_set_flip_vertically_on_load(true);
 
-    glm::vec3 light_1_position(1.2f, 1.0f, 2.0f);
-    glm::vec3 light_1_color(1.0f, 1.0f, 1.0f);
-    float light_1_strength(100.f);
-
-    glm::vec3 directional_light_direction(-0.2f, 1.0f, -0.3f);
-    glm::vec3 directional_light_color(1.0f, 1.0f, 0.8f);
-    directional_light_color = 2.f * directional_light_color;
-
     float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         // positions   // texCoords
         -1.0f,  1.0f,  0.0f, 1.0f,
@@ -133,6 +125,13 @@ int main()
          1.0f,  1.0f,  1.0f, 1.0f
     };
 
+    glm::vec3 light_1_position(1.2f, 1.0f, 2.0f);
+    glm::vec3 light_1_color(1.0f, 1.0f, 1.0f);
+    float light_1_strength(100.f);
+
+    glm::vec3 directional_light_direction(-0.2f, 1.0f, -0.3f);
+    glm::vec3 directional_light_color(1.0f, 1.0f, 0.8f);
+    directional_light_color = 2.f * directional_light_color;
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "server", NULL, NULL);
     if (window == NULL)
@@ -149,24 +148,46 @@ int main()
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetCursorPosCallback(window, mouse_callback);
 
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), float(SCR_WIDTH) / float(SCR_HEIGHT), 0.1f, 10000.0f);
 
+    ShaderProgram screen_shader_program(VertexShader("Engine/Shaders/screen.vs.glsl"), FragmentShader("Engine/Shaders/screen.fs.glsl"));
     ShaderProgram framebuffer_shader_program(VertexShader("Engine/Shaders/VS_01.glsl"), FragmentShader("Engine/Shaders/FS_01.glsl"));
     Model model("Application/Models/backpack.obj");
     Model model2("Application/Models/Cube.obj");
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(MessageCallback, 0);
-    
+
+
+    unsigned int quadVAO, quadVBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+
     unsigned int frame_buffer;
     glGenFramebuffers(1, &frame_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+    unsigned int textureColorbuffer;
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
 
     unsigned int render_buffer_depth;
@@ -175,33 +196,29 @@ int main()
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, render_buffer_depth);
 
-    unsigned int render_buffer;
-    glGenRenderbuffers(1, &render_buffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, render_buffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, SCR_WIDTH, SCR_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buffer);
 
     unsigned int pixel_buffer;
     glGenBuffers(1, &pixel_buffer);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
-    glBufferData(GL_PIXEL_PACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 4, NULL, GL_STREAM_COPY);
+    glBufferData(GL_PIXEL_PACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 4, NULL, GL_DYNAMIC_COPY);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
     const char* output_file_path = "encoded.h264";
     EncodeNVENC encoder(0, pixel_buffer, SCR_WIDTH, SCR_HEIGHT, output_file_path);
-
+    unsigned char* data_buffer = new unsigned char[SCR_WIDTH * SCR_HEIGHT * 4];
     while (!glfwWindowShouldClose(window))
     {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame_buffer);
+        glEnable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         processInput(window);
-        glClearColor(0.f, 0.f, 0.f, 1.f); //(BGRA)
+        glClearColor(0.f, 0.f, 0.f, 1.f); //(VUYA)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -217,46 +234,55 @@ int main()
         framebuffer_shader_program.setUniform("directional_light_direction", directional_light_direction);
         framebuffer_shader_program.setUniform("directional_light_color", directional_light_color);
 
-        // render the loaded model
+         //render the loaded model
         glm::mat4 model_transform = glm::mat4(1.0f);
         model_transform = glm::translate(model_transform, glm::vec3(0.0f, 5.0f, -8.f)); // translate it down so it's at the center of the scene
         framebuffer_shader_program.setUniform("model", model_transform);
         model.Draw(framebuffer_shader_program);
 
-        model_transform = glm::mat4(1.0f);
-        model_transform = glm::translate(model_transform, glm::vec3(-5.f, 5.f, -5.f));
-        model_transform = glm::scale(model_transform, glm::vec3(1.0f, 10.f, 10.f));
-        framebuffer_shader_program.setUniform("model", model_transform);
-        model2.Draw(framebuffer_shader_program);
+        //model_transform = glm::mat4(1.0f);
+        //model_transform = glm::translate(model_transform, glm::vec3(-5.f, 5.f, -5.f));
+        //model_transform = glm::scale(model_transform, glm::vec3(1.0f, 10.f, 10.f));
+        //framebuffer_shader_program.setUniform("model", model_transform);
+        //model2.Draw(framebuffer_shader_program);
 
-        model_transform = glm::mat4(1.0f);
-        model_transform = glm::translate(model_transform, glm::vec3(0.f, 0.f, -5.f));
-        model_transform = glm::scale(model_transform, glm::vec3(10.0f, 1.0f, 10.f)); // translate it down so it's at the center of the scene
-        framebuffer_shader_program.setUniform("model", model_transform);
-        model2.Draw(framebuffer_shader_program);
-
+        //model_transform = glm::mat4(1.0f);
+        //model_transform = glm::translate(model_transform, glm::vec3(0.f, 0.f, -5.f));
+        //model_transform = glm::scale(model_transform, glm::vec3(10.0f, 1.0f, 10.f)); // translate it down so it's at the center of the scene
+        //framebuffer_shader_program.setUniform("model", model_transform);
+        //model2.Draw(framebuffer_shader_program);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
         glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-       
-        auto fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glClientWaitSync(fence, 0, GL_TIMEOUT_IGNORED);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-
+        glFinish();
         encoder.Encode();
-;
-        //glBindBuffer(GL_READ_BUFFER, pixel_buffer);
-        //glBindBuffer(GL_DRAW_BUFFER, render_buffer);
-        //glCopyBufferSubData(pixel_buffer, GL_COLOR_ATTACHMENT0, 0, 0, 800 * 600 * 4);
+        glFinish();
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
+        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        std::memcpy(data_buffer, ptr, SCR_WIDTH * SCR_HEIGHT * 4);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(1.f, 0.f, 0.f, 1.f); //(BGRA)
+        screen_shader_program.use();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_buffer);
+
+        glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        glFinish();
     }
     encoder.CleanupEncoder();
+
+    delete[] data_buffer;
     glfwTerminate();
     return 0;
-} 
+}

@@ -35,3 +35,5 @@
 .vs/
 x64/
 encoded.h264
+sampleout.h264
+sample.yuv
