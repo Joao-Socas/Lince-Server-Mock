@@ -93,8 +93,8 @@ void main()
     //float Y = 0.299 * rgb.x + 0.587 * rgb.y + 0.114 * rgb.z;
     //float U = -0.148 * rgb.x - 0.28886 * rgb.y + 0.436 * rgb.z;
     //float V = 0.615 * rgb.x - 0.51499 * rgb.y - 0.10001 * rgb.z;
-    FragColor = vec4(1);
-    //FragColor = vec4(normal_diffuse + normal_diffuse_directional + specular, 1);
+    //FragColor = vec4(1);
+    FragColor = vec4(normal_diffuse + normal_diffuse_directional + specular, 1);
     //FragColor = vec4(1.0,0.5,0.5, 1);
 
 }

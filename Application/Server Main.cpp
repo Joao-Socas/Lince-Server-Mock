@@ -22,8 +22,8 @@
 #include<sys/types.h>
 #pragma comment(lib,"WS2_32")
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 256;
+const unsigned int SCR_HEIGHT = 256;
 const unsigned int PORT = 27015;
 
 bool firstMouse = true;
@@ -200,7 +200,7 @@ int main()
     unsigned int pixel_buffer;
     glGenBuffers(1, &pixel_buffer);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
-    glBufferData(GL_PIXEL_PACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 4, NULL, GL_DYNAMIC_COPY);
+    glBufferData(GL_PIXEL_PACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 3 * 4, NULL, GL_DYNAMIC_COPY);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
     glEnable(GL_DEPTH_TEST);
@@ -253,24 +253,24 @@ int main()
         //model2.Draw(framebuffer_shader_program);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
-        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_FLOAT, 0);
 
         glFinish();
         encoder.Encode();
         glFinish();
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pixel_buffer);
-        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-        std::memcpy(data_buffer, ptr, SCR_WIDTH * SCR_HEIGHT * 4);
+        GLfloat* ptr = (GLfloat*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        std::memcpy(data_buffer, ptr, SCR_WIDTH * SCR_HEIGHT* 3);
 
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(1.f, 0.f, 0.f, 1.f); //(BGRA)
+        glClearColor(1.f, 1.f, 1.f, 1.f); //(BGRA)
         screen_shader_program.use();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_buffer);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB16F, GL_UNSIGNED_BYTE, data_buffer);
 
         glDisable(GL_DEPTH_TEST);
         glBindVertexArray(quadVAO);
@@ -281,8 +281,6 @@ int main()
         glFinish();
     }
     encoder.CleanupEncoder();
-
-    delete[] data_buffer;
     glfwTerminate();
     return 0;
 }

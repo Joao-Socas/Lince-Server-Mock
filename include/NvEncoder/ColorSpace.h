@@ -28,6 +28,7 @@
 #pragma once
 #include <stdint.h>
 #include <cuda_runtime.h>
+#include <cuda.h>
 
 typedef enum ColorSpaceStandard {
     ColorSpaceStandard_BT709 = 1,
@@ -73,3 +74,4 @@ union RGBA64 {
         uint16_t r, g, b, a;
     } c;
 };
+void RGBAFtoYUVUC(unsigned int width, unsigned int height, CUdeviceptr source, CUdeviceptr target, int iMatrix = ColorSpaceStandard_BT2020);

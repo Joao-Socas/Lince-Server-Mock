@@ -357,28 +357,33 @@ template void YUV444P16ToColorPlanar<BGRA32>(uint8_t *dpYUV444, int nPitch, uint
 template void YUV444P16ToColorPlanar<RGBA32>(uint8_t *dpYUV444, int nPitch, uint8_t *dpBgrp, int nBgrpPitch, int nWidth, int nHeight, int iMatrix);
 
 template<class YuvUnit, class RgbUnit>
-__device__ inline YuvUnit RgbToY(RgbUnit r, RgbUnit g, RgbUnit b) {
+__device__ inline YuvUnit RgbToY(RgbUnit r, RgbUnit g, RgbUnit b) 
+{
     const YuvUnit low = 1 << (sizeof(YuvUnit) * 8 - 4);
     return matRgb2Yuv[0][0] * r + matRgb2Yuv[0][1] * g + matRgb2Yuv[0][2] * b + low;
 }
 
 template<class YuvUnit, class RgbUnit>
-__device__ inline YuvUnit RgbToU(RgbUnit r, RgbUnit g, RgbUnit b) {
+__device__ inline YuvUnit RgbToU(RgbUnit r, RgbUnit g, RgbUnit b) 
+{
     const YuvUnit mid = 1 << (sizeof(YuvUnit) * 8 - 1);
     return matRgb2Yuv[1][0] * r + matRgb2Yuv[1][1] * g + matRgb2Yuv[1][2] * b + mid;
 }
 
 template<class YuvUnit, class RgbUnit>
-__device__ inline YuvUnit RgbToV(RgbUnit r, RgbUnit g, RgbUnit b) {
+__device__ inline YuvUnit RgbToV(RgbUnit r, RgbUnit g, RgbUnit b) 
+{
     const YuvUnit mid = 1 << (sizeof(YuvUnit) * 8 - 1);
     return matRgb2Yuv[2][0] * r + matRgb2Yuv[2][1] * g + matRgb2Yuv[2][2] * b + mid;
 }
 
 template<class YuvUnitx2, class Rgb, class RgbIntx2>
-__global__ static void RgbToYuvKernel(uint8_t *pRgb, int nRgbPitch, uint8_t *pYuv, int nYuvPitch, int nWidth, int nHeight) {
+__global__ static void RgbToYuvKernel(uint8_t *pRgb, int nRgbPitch, uint8_t *pYuv, int nYuvPitch, int nWidth, int nHeight) 
+{
     int x = (threadIdx.x + blockIdx.x * blockDim.x) * 2;
     int y = (threadIdx.y + blockIdx.y * blockDim.y) * 2;
-    if (x + 1 >= nWidth || y + 1 >= nHeight) {
+    if (x + 1 >= nWidth || y + 1 >= nHeight) 
+    {
         return;
     }
 
@@ -393,15 +398,19 @@ __global__ static void RgbToYuvKernel(uint8_t *pRgb, int nRgbPitch, uint8_t *pYu
         b = (rgb[0].c.b + rgb[1].c.b + rgb[2].c.b + rgb[3].c.b) / 4;
 
     uint8_t *pDst = pYuv + x * sizeof(YuvUnitx2) / 2 + y * nYuvPitch;
-    *(YuvUnitx2 *)pDst = YuvUnitx2 {
+
+    *(YuvUnitx2 *)pDst = YuvUnitx2 
+    {
         RgbToY<decltype(YuvUnitx2::x)>(rgb[0].c.r, rgb[0].c.g, rgb[0].c.b),
         RgbToY<decltype(YuvUnitx2::x)>(rgb[1].c.r, rgb[1].c.g, rgb[1].c.b),
     };
-    *(YuvUnitx2 *)(pDst + nYuvPitch) = YuvUnitx2 {
+    *(YuvUnitx2 *)(pDst + nYuvPitch) = YuvUnitx2 
+    {
         RgbToY<decltype(YuvUnitx2::x)>(rgb[2].c.r, rgb[2].c.g, rgb[2].c.b),
         RgbToY<decltype(YuvUnitx2::x)>(rgb[3].c.r, rgb[3].c.g, rgb[3].c.b),
     };
-    *(YuvUnitx2 *)(pDst + (nHeight - y / 2) * nYuvPitch) = YuvUnitx2 {
+    *(YuvUnitx2 *)(pDst + (nHeight - y / 2) * nYuvPitch) = YuvUnitx2 
+    {
         RgbToU<decltype(YuvUnitx2::x)>(r, g, b), 
         RgbToV<decltype(YuvUnitx2::x)>(r, g, b),
     };
@@ -412,4 +421,32 @@ void Bgra64ToP016(uint8_t *dpBgra, int nBgraPitch, uint8_t *dpP016, int nP016Pit
     RgbToYuvKernel<ushort2, BGRA64, ulonglong2>
         <<<dim3((nWidth + 63) / 32 / 2, (nHeight + 3) / 2 / 2), dim3(32, 2)>>>
         (dpBgra, nBgraPitch, dpP016, nP016Pitch, nWidth, nHeight);
+}
+
+__global__ static void RGBAFtoYUVUC_kernel(float* source, char* target, unsigned int width, unsigned int height)
+{
+    int floats_per_pixels = 3;
+    int pixel_number = (blockIdx.x + 1) * (threadIdx.x + 1) * (blockIdx.y + 1) - 1;
+
+    unsigned int R = pixel_number * floats_per_pixels;
+    unsigned int G = pixel_number * floats_per_pixels + 1;
+    unsigned int B = pixel_number * floats_per_pixels + 2;
+    unsigned int Y = pixel_number;
+    unsigned int U = pixel_number + ((width * height));
+    unsigned int V = pixel_number + ((width * height));
+
+    target[Y] = RgbToY<char, float>(source[R], source[G], source[B]);
+    target[U] = RgbToU<char, float>(source[R], source[G], source[B]);
+    target[V] = RgbToV<char, float>(source[R], source[G], source[B]);
+}
+
+
+void RGBAFtoYUVUC(unsigned int width, unsigned int height, CUdeviceptr source, CUdeviceptr target, int iMatrix)
+{
+    SetMatRgb2Yuv(iMatrix);
+    const unsigned int threads_per_block = 256;
+    dim3 number_blocks((width/threads_per_block),height);
+
+
+    RGBAFtoYUVUC_kernel<<<number_blocks, threads_per_block>>>((float*)source, (char*)target, width, height);
 }
