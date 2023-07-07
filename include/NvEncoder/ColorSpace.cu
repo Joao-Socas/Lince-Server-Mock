@@ -432,12 +432,26 @@ __global__ static void RGBAFtoYUVUC_kernel(float* source, char* target, unsigned
     unsigned int G = pixel_number * floats_per_pixels + 1;
     unsigned int B = pixel_number * floats_per_pixels + 2;
     unsigned int Y = pixel_number;
-    unsigned int U = pixel_number + ((width * height));
-    unsigned int V = pixel_number + ((width * height));
+    unsigned int U = pixel_number + (256 * 256 * 2);
+    unsigned int V = pixel_number + (256 * 256 * 2) + (128 * 128 * 2);
 
-    target[Y] = RgbToY<char, float>(source[R], source[G], source[B]);
-    target[U] = RgbToU<char, float>(source[R], source[G], source[B]);
-    target[V] = RgbToV<char, float>(source[R], source[G], source[B]);
+    target[Y] = 0;//RgbToY<char, float>(source[R], source[G], source[B]);
+    target[U] = 0;//RgbToU<char, float>(source[R], source[G], source[B]);
+    target[V] = 0;//RgbToV<char, float>(source[R], source[G], source[B]);
+    target[(blockIdx.x + 1) * (threadIdx.x + 1)  - 1] = 255;
+    target[(blockIdx.x + 1) * 2 * (threadIdx.x + 1) - 1] = 255;
+    //target[(blockIdx.x + 1) * 3 * (threadIdx.x + 1) - 1] = 255;
+    for (int i = 0; i < 254; i++)
+    {
+        target[(blockIdx.x + 1) * 2 * (threadIdx.x + 1) + i] = 255;
+    }
+    target[(blockIdx.x + 1) * 2 * (threadIdx.x + 1) + 510] = 255;
+    target[(blockIdx.x + 1) * 2 * (threadIdx.x + 1) + 511] = 255;
+
+ /*   target[((blockIdx.x + 1) * (threadIdx.x + 1) - 1) + (256 * 256 * 2)] = 128;
+    target[((blockIdx.x + 1) * (threadIdx.x + 1) - 1) + (256 * 256 * 2) + (128*128*2)] = 128;*/
+    //target[((blockIdx.x + 1) * (threadIdx.x + 1) - 1) + (256 * 256 * 3)] = 128;
+    //target[(blockIdx.x + 1) * (threadIdx.x + 1) - 1 + (width * height * 2)] = 128;
 }
 
 
