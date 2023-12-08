@@ -19,11 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
+    <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{66a1bf75-24da-4303-ae4e-35db49c2ae36}</ProjectGuid>
-    <RootNamespace>LinceServerMock</RootNamespace>
+    <ProjectGuid>{bff717d9-e003-4aa6-9e6f-92dcca8482b4}</ProjectGuid>
+    <RootNamespace>LInceServerMock</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <CudaToolkitCustomDir>$(CUDA_PATH)</CudaToolkitCustomDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -54,7 +55,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.1.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.3.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -72,12 +73,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(CUDA_PATH)\lib\x64;$(SolutionDir)libs;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
-    <IncludePath>$(CUDA_PATH)\include;$(SolutionDir)Engine\Header;$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>F:\Projetos\Lince Server Mock\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(CUDA_PATH)\lib\x64;$(SolutionDir)libs;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
-    <IncludePath>$(CUDA_PATH)\include;$(SolutionDir)Engine\Header;$(SolutionDir)include;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\Projetos\Lince Server Mock\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -113,11 +112,11 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>F:\Projetos\Lince Server Mock\include;F:\Projetos\Lince Server Mock\Engine\Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;cuda.lib;cudart.lib;nvcuvid.lib;nvencodeapi.lib;assimp-vc143-mt.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,67 +127,48 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>Default</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
+      <AdditionalIncludeDirectories>F:\Projetos\Lince Server Mock\include;F:\Projetos\Lince Server Mock\Engine\Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;cuda.lib;cudart.lib;nvcuvid.lib;nvencodeapi.lib;assimp-vc143-mt.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <CudaCompile>
-      <CudaRuntime>Shared</CudaRuntime>
-    </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Application\glad.c" />
-    <ClCompile Include="Application\Server Main.cpp" />
-    <ClCompile Include="Engine\Source\AppEncCuda.cpp" />
-    <ClCompile Include="Engine\Source\EncodeNVENC.cpp" />
-    <ClCompile Include="Engine\Source\TransactionManager.cpp" />
-    <ClCompile Include="Engine\Source\ServerSocket.cpp" />
-    <ClCompile Include="Engine\Source\Input.cpp" />
-    <ClCompile Include="Engine\Source\Light.cpp" />
-    <ClCompile Include="Engine\Source\Mesh.cpp" />
-    <ClCompile Include="Engine\Source\Model.cpp" />
-    <ClCompile Include="Engine\Source\Shader.cpp" />
-    <ClCompile Include="Engine\Source\Texture.cpp" />
-    <ClCompile Include="include\NvEncoder\NvEncoder.cpp" />
-    <ClCompile Include="include\NvEncoder\NvEncoderCuda.cpp" />
-    <ClCompile Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.cpp" />
-    <ClCompile Include="include\STB\stb_image.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Engine\Header\EncodeNVENC.hpp" />
-    <ClInclude Include="Engine\Header\BufferController.hpp" />
-    <ClInclude Include="Engine\Header\TransactionManager.hpp" />
-    <ClInclude Include="Engine\Header\Input.hpp" />
-    <ClInclude Include="Engine\Header\Light.hpp" />
-    <ClInclude Include="Engine\Header\Mesh.hpp" />
-    <ClInclude Include="Engine\Header\Model.hpp" />
-    <ClInclude Include="Engine\Header\Shader.hpp" />
-    <ClInclude Include="Engine\Header\ServerSocket.hpp" />
-    <ClInclude Include="Engine\Header\Texture.hpp" />
-    <ClCompile Include="Engine\Source\BufferController.cpp" />
-    <ClInclude Include="include\NvEncoder\NvCodecUtils.h" />
-    <ClInclude Include="include\NvEncoder\nvEncodeAPI.h" />
-    <ClInclude Include="include\NvEncoder\NvEncoder.h" />
-    <ClInclude Include="include\NvEncoder\NvEncoderCuda.h" />
-    <ClInclude Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.h" />
-    <ClInclude Include="include\STB\stb_image.h" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="Application\application.config" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="include\NvEncoder\BitDepth.cu" />
-    <CudaCompile Include="include\NvEncoder\ColorSpace.cu" />
-    <CudaCompile Include="include\NvEncoder\crc.cu" />
+    <ClCompile Include="Application\glad.c" />
+    <ClCompile Include="Application\Server Main.cpp" />
+    <ClCompile Include="Engine\Source\AppDec.cpp" />
+    <ClCompile Include="Engine\Source\AppEncCuda.cpp" />
+    <ClCompile Include="Engine\Source\BufferController.cpp" />
+    <ClCompile Include="Engine\Source\EncodeNVENC.cpp" />
+    <ClCompile Include="Engine\Source\Input.cpp" />
+    <ClCompile Include="Engine\Source\Light.cpp" />
+    <ClCompile Include="Engine\Source\Mesh.cpp" />
+    <ClCompile Include="Engine\Source\Model.cpp" />
+    <ClCompile Include="Engine\Source\ServerSocket.cpp" />
+    <ClCompile Include="Engine\Source\Shader.cpp" />
+    <ClCompile Include="Engine\Source\Texture.cpp" />
+    <ClCompile Include="Engine\Source\TransactionManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine\Header\BufferController.hpp" />
+    <ClInclude Include="Engine\Header\EncodeNVENC.hpp" />
+    <ClInclude Include="Engine\Header\Input.hpp" />
+    <ClInclude Include="Engine\Header\Light.hpp" />
+    <ClInclude Include="Engine\Header\Mesh.hpp" />
+    <ClInclude Include="Engine\Header\Model.hpp" />
+    <ClInclude Include="Engine\Header\ServerSocket.hpp" />
+    <ClInclude Include="Engine\Header\Shader.hpp" />
+    <ClInclude Include="Engine\Header\Texture.hpp" />
+    <ClInclude Include="Engine\Header\TransactionManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.1.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.3.targets" />
   </ImportGroup>
 </Project>

@@ -15,10 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Application\application.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Application\glad.c">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="Application\Server Main.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\AppDec.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\AppEncCuda.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\BufferController.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\EncodeNVENC.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Input.cpp">
@@ -33,41 +48,26 @@
     <ClCompile Include="Engine\Source\Model.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Source\ServerSocket.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
     <ClCompile Include="Engine\Source\Shader.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Texture.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="include\STB\stb_image.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Source\ServerSocket.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Source\TransactionManager.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Source\BufferController.cpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Source\EncodeNVENC.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="include\NvEncoder\NvEncoderCuda.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="include\NvEncoder\NvEncoder.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Source\AppEncCuda.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
-    <ClCompile Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Header\BufferController.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Header\EncodeNVENC.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Header\Input.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
@@ -80,49 +80,17 @@
     <ClInclude Include="Engine\Header\Model.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Header\ServerSocket.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Header\Shader.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Header\Texture.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="include\STB\stb_image.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Header\ServerSocket.hpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Header\BufferController.hpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Header\TransactionManager.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Header\EncodeNVENC.hpp">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NvEncoder\NvEncoder.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NvEncoder\NvCodecUtils.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NvEncoder\nvEncodeAPI.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NvEncoder\NvEncoderCuda.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="include\NvEncoder\NvEncoderOutputInVidMemCuda.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Application\application.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="include\NvEncoder\crc.cu" />
-    <CudaCompile Include="include\NvEncoder\ColorSpace.cu" />
-    <CudaCompile Include="include\NvEncoder\BitDepth.cu" />
   </ItemGroup>
 </Project>

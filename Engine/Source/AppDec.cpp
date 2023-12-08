@@ -190,7 +190,7 @@ void ParseCommandLine(int argc, char *argv[], char *szInputFileName, char *szOut
             continue;
         }
         if (!_stricmp(argv[i], "-crop")) {
-            if (++i == argc || 4 != sscanf(
+            if (++i == argc || 4 != sscanf_s(
                     argv[i], "%d,%d,%d,%d",
                     &cropRect.l, &cropRect.t, &cropRect.r, &cropRect.b)) {
                 ShowHelpAndExit("-crop");
@@ -202,7 +202,7 @@ void ParseCommandLine(int argc, char *argv[], char *szInputFileName, char *szOut
             continue;
         }
         if (!_stricmp(argv[i], "-resize")) {
-            if (++i == argc || 2 != sscanf(argv[i], "%dx%d", &resizeDim.w, &resizeDim.h)) {
+            if (++i == argc || 2 != sscanf_s(argv[i], "%dx%d", &resizeDim.w, &resizeDim.h)) {
                 ShowHelpAndExit("-resize");
             }
             if (resizeDim.w % 2 == 1 || resizeDim.h % 2 == 1) {

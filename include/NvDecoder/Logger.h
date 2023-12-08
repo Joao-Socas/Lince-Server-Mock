@@ -69,17 +69,18 @@ public:
     }
     char* GetLead(LogLevel l, const char *szFile, int nLine, const char *szFunc) {
         if (l < TRACE || l > FATAL) {
-            sprintf(szLead, "[?????] ");
+            sprintf_s(szLead, "[?????] ");
             return szLead;
         }
         const char *szLevels[] = {"TRACE", "INFO", "WARN", "ERROR", "FATAL"};
         if (bPrintTimeStamp) {
             time_t t = time(NULL);
-            struct tm *ptm = localtime(&t);
-            sprintf(szLead, "[%-5s][%02d:%02d:%02d] ", 
-                szLevels[l], ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+            struct tm ptm;
+            localtime_s(&ptm, &t);
+            sprintf_s(szLead, "[%-5s][%02d:%02d:%02d] ",
+                szLevels[l], ptm.tm_hour, ptm.tm_min, ptm.tm_sec);
         } else {
-            sprintf(szLead, "[%-5s] ", szLevels[l]);
+            sprintf_s(szLead, "[%-5s] ", szLevels[l]);
         }
         return szLead;
     }
@@ -161,7 +162,7 @@ private:
                 }
 #ifdef _WIN32
                 unsigned int b1, b2, b3, b4;
-                sscanf(szHost, "%u.%u.%u.%u", &b1, &b2, &b3, &b4);
+                sscanf_s(szHost, "%u.%u.%u.%u", &b1, &b2, &b3, &b4);
                 struct in_addr addr = {(unsigned char)b1, (unsigned char)b2, (unsigned char)b3, (unsigned char)b4};
 #else
                 struct in_addr addr = {inet_addr(szHost)};

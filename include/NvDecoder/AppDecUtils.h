@@ -57,14 +57,14 @@ static void ParseCommandLine(int argc, char *argv[], char *szInputFileName,
             if (++i == argc) {
                 ShowHelpAndExit("-i", szOutputFileName, pbVerbose, piD3d, pbForce_zero_latency);
             }
-            sprintf(szInputFileName, "%s", argv[i]);
+            sprintf_s(szInputFileName, sizeof(argv[i], "%s", argv[i]);
             continue;
         }
         if (!_stricmp(argv[i], "-o")) {
             if (++i == argc || !szOutputFileName) {
                 ShowHelpAndExit("-o", szOutputFileName, pbVerbose, piD3d, pbForce_zero_latency);
             }
-            sprintf(szOutputFileName, "%s", argv[i]);
+            sprintf_s(szOutputFileName, sizeof(argv[i]), "%s", argv[i]);
             continue;
         }
         if (!_stricmp(argv[i], "-gpu")) {
@@ -112,19 +112,19 @@ static void getOutputFormatNames(unsigned short nOutputFormatMask, char *OutputF
     }
 
     if (nOutputFormatMask & (1U << cudaVideoSurfaceFormat_NV12)) {
-        strcat(OutputFormats, "NV12 ");
+        strcat_s(OutputFormats, sizeof("NV12 "), "NV12 ");
     }
 
     if (nOutputFormatMask & (1U << cudaVideoSurfaceFormat_P016)) {
-        strcat(OutputFormats, "P016 ");
+        strcat_s(OutputFormats, sizeof("P016 "), "P016 ");
     }
 
     if (nOutputFormatMask & (1U << cudaVideoSurfaceFormat_YUV444)) {
-        strcat(OutputFormats, "YUV444 ");
+        strcat_s(OutputFormats, sizeof("YUV444 "), "YUV444 ");
     }
 
     if (nOutputFormatMask & (1U << cudaVideoSurfaceFormat_YUV444_16Bit)) {
-        strcat(OutputFormats, "YUV444P16 ");
+        strcat_s(OutputFormats, sizeof("YUV444P16 "), "YUV444P16 ");
     }
     return;
 }
